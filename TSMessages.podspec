@@ -26,8 +26,13 @@ There are 4 different types already set up for you: Success, Error, Warning, Mes
   s.platform     = :ios, '5.0'
   s.requires_arc = true
 
-  s.source_files = 'Pod/Classes'
-  s.resources = ['Pod/Assets/*.png', 'Pod/Assets/*.json']
+  s.source_files = 'TSMessages/Classes/*{h,m}'
+  s.resources = ['TSMessages/Assets/*.png', 'TSMessages/Assets/*.json']
 
-  s.public_header_files = 'Pod/Classes/**/*.h'
+  s.public_header_files = ['TSMessages/TSMessages.h', 'TSMessages/Classes/*{h}']
+
+  s.module_map = 'TSMessages/module.modulemap'
+  s.preserve_path = 'TSMessages/module.modulemap'
+s
+  
 end

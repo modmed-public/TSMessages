@@ -30,7 +30,7 @@ SPEC CHECKSUMS:
   "Expecta+Snapshots": 4a0b46d3ba755bd43dffa7d53e4585fc6cbfe8cd
   FBSnapshotTestCase: 892508495a69e8703bab36c9da7674ff740d41db
   Specta: 15a276a6343867b426d5ed135d5aa4d04123a573
-  TSMessages: 188dfc1c43a67ebe6411690e077ec7dc32bbb0b8
+  TSMessages: 1c2a29d6b48bda166ff091aa45e1bdd10dc60a39
 
 PODFILE CHECKSUM: 8f9d05a07d8fc49030bcddac0ec35b1e7ece24d0
 

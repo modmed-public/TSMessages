@@ -29,6 +29,14 @@ it, simply add the following line to your Podfile:
 ## Manually
 Copy the source files TSMessageView and TSMessage into your project. Also copy the TSMessagesDesignDefault.json.
 
+## From Carthage
+TSMessages is available through [Carthage](https://github.com/Carthage/Carthage). To install
+it, simply add the following line to your Cartfile:
+
+```bash
+github "modmed/TSMessages"
+```
+
 # Usage
 
 To show notifications use the following code:

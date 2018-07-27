@@ -1,1 +1,1 @@
-../../../../../Pod/Classes/TSBlurView.h
+../../../../../TSMessages/Classes/TSBlurView.h
