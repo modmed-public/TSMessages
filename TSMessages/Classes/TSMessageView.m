@@ -425,7 +425,7 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
         {
             UISwipeGestureRecognizer *gestureRec = [[UISwipeGestureRecognizer alloc] initWithTarget:self
                                                                                              action:@selector(fadeMeOut)];
-            [gestureRec setDirection:(self.messagePosition == TSMessageNotificationPositionTop ?
+            [gestureRec setDirection:(self.messagePosition == TSMessageNotificationPositionTop || self.messagePosition == TSMessageNotificationPositionNavBarOverlay ?
                                       UISwipeGestureRecognizerDirectionUp :
                                       UISwipeGestureRecognizerDirectionDown)];
             [self addGestureRecognizer:gestureRec];
