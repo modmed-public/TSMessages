@@ -145,7 +145,7 @@ static NSMutableDictionary *_notificationDesign;
 {
     if (!_notificationDesign)
     {
-        NSString *path = [[NSBundle bundleForClass:self.class] pathForResource:TSDesignFileName ofType:@"json"];
+        NSString *path = [[TSMessageView tsMessageBundle] pathForResource:TSDesignFileName ofType:@"json"];
         NSData *data = [NSData dataWithContentsOfFile:path];
         NSAssert(data != nil, @"Could not read TSMessages config file from main bundle with name %@.json", TSDesignFileName);
 
@@ -160,7 +160,7 @@ static NSMutableDictionary *_notificationDesign;
 
 + (void)addNotificationDesignFromFile:(NSString *)filename
 {
-    NSString *path = [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:filename];
+    NSString *path = [[[TSMessageView tsMessageBundle] resourcePath] stringByAppendingPathComponent:filename];
     if ([[NSFileManager defaultManager] fileExistsAtPath:path])
     {
         NSDictionary *design = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:path]
@@ -604,9 +604,20 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
 
 #pragma mark - Grab Image From Pod Bundle
 - (UIImage *)bundledImageNamed:(NSString*)name{
-    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+    NSBundle *bundle = [TSMessageView tsMessageBundle];
     NSString *imagePath = [bundle pathForResource:name ofType:nil];
     return [[UIImage alloc] initWithContentsOfFile:imagePath];
+}
+
++ (NSBundle *)tsMessageBundle {
+    NSBundle *bundle;
+
+#if SWIFT_PACKAGE
+    bundle = SWIFTPM_MODULE_BUNDLE;
+#else
+    bundle = [NSBundle bundleForClass:self.class];
+#endif
+    return bundle;
 }
 
 @end
