@@ -160,7 +160,12 @@ static NSMutableDictionary *_notificationDesign;
 
 + (void)addNotificationDesignFromFile:(NSString *)filename
 {
-    NSString *path = [[[TSMessageView tsMessageBundle] resourcePath] stringByAppendingPathComponent:filename];
+    [TSMessageView addNotificationDesignFromFile:filename withBundle:[TSMessageView tsMessageBundle]];
+}
+
++ (void)addNotificationDesignFromFile:(NSString *)filename withBundle:(NSBundle *)bundle
+{
+    NSString *path = [[bundle resourcePath] stringByAppendingPathComponent:filename];
     if ([[NSFileManager defaultManager] fileExistsAtPath:path])
     {
         NSDictionary *design = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:path]
