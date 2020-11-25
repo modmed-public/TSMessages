@@ -42,6 +42,6 @@ let package = Package(
                 .copy("Assets/NotificationBackgroundErrorIcon@2x.png"),
                 .copy("Assets/NotificationBackgroundErrorIcon.png"),
             ],
-            publicHeadersPath: "")
+            publicHeadersPath: "Classes")
     ]
 )
