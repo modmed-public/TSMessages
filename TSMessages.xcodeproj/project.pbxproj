@@ -67,6 +67,7 @@
 		41F0BCE4210A6CFD0016AD64 /* NotificationBackgroundWarning.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = NotificationBackgroundWarning.png; sourceTree = "<group>"; };
 		41F0BCF9210A7AB30016AD64 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		41F0BD06210A7E880016AD64 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		ED4925A9256DB13A00411306 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +85,7 @@
 		41F0BC8A210A695A0016AD64 = {
 			isa = PBXGroup;
 			children = (
+				ED4925A9256DB13A00411306 /* Package.swift */,
 				41F0BC96210A695A0016AD64 /* TSMessages */,
 				41F0BC95210A695A0016AD64 /* Products */,
 				41F0BCF8210A7AB30016AD64 /* Frameworks */,
