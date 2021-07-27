@@ -180,7 +180,7 @@ __weak static UIViewController *_defaultViewController;
     return self;
 }
 
-- (void)fadeInCurrentNotification
+- (void)fadeInCurrentNotification NS_EXTENSION_UNAVAILABLE_IOS("Uses APIs not available for use in App Extensions.")
 {
     if ([self.messages count] == 0) return;
     

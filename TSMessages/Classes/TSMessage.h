@@ -70,7 +70,7 @@ typedef NS_ENUM(NSInteger,TSMessageNotificationDuration) {
 
 + (instancetype)sharedMessage;
 
-+ (UIViewController *)defaultViewController;
++ (UIViewController *)defaultViewController NS_EXTENSION_UNAVAILABLE_IOS("Uses APIs not available for use in App Extensions.");
 
 /** Shows a notification message
  @param message The title of the notification view
