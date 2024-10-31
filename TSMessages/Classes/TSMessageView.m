@@ -568,6 +568,13 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
     [[TSMessage sharedMessage] performSelectorOnMainThread:@selector(fadeOutNotification:) withObject:self waitUntilDone:NO];
 }
 
+- (void)viewWillBeDismissed {
+    if (self.callback != nil)
+    {
+        self.callback();
+    }
+}
+
 - (void)didMoveToWindow
 {
     [super didMoveToWindow];

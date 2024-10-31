@@ -73,6 +73,7 @@ canBeDismissedByUser:(BOOL)dismissingEnabled;
 
 /** Fades out this notification view */
 - (void)fadeMeOut;
+- (void)viewWillBeDismissed;
 
 /** Use this method to load a custom design file */
 + (void)addNotificationDesignFromFile:(NSString *)file;
