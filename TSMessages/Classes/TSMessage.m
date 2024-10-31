@@ -358,6 +358,7 @@ __weak static UIViewController *_defaultViewController;
          }
      } completion:^(BOOL finished)
      {
+        [currentView viewWillBeDismissed];
          [currentView removeFromSuperview];
          
          if ([self.messages count] > 0)
