@@ -502,6 +502,10 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
     if (self.messagePosition == TSMessageNotificationPositionTop)
     {
         // Correct the border position
+        if (@available(iOS 26.0, *)) {
+            // Add height to compensate moving the toast a few pts up to hide the gap
+            currentHeight += 4.0;
+        }
         CGRect borderFrame = self.borderView.frame;
         borderFrame.origin.y = currentHeight;
         self.borderView.frame = borderFrame;
@@ -509,7 +513,12 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
 
     currentHeight += self.borderView.frame.size.height;
 
-    self.frame = CGRectMake(0.0, self.frame.origin.y, self.frame.size.width, currentHeight);
+    if (@available(iOS 26.0, *)) {
+        // Move toast a few pts up to hide the gap when app is not in full screen mode
+        self.frame = CGRectMake(0.0, self.frame.origin.y - 4.0, self.frame.size.width, currentHeight);
+    } else {
+        self.frame = CGRectMake(0.0, self.frame.origin.y, self.frame.size.width, currentHeight);
+    }
 
 
     if (self.button)
