@@ -11,41 +11,61 @@
 
 @interface TSBlurView ()
 
-@property (nonatomic, strong) UIToolbar *toolbar;
+@property (nonatomic, strong) UIVisualEffectView *blurEffectView;
+@property (nonatomic, strong) UIView *tintOverlay;
 
 @end
 
 @implementation TSBlurView
 
-
-- (UIToolbar *)toolbar
+- (instancetype)initWithFrame:(CGRect)frame
 {
-    if (_toolbar == nil) {
-        _toolbar = [[UIToolbar alloc] initWithFrame:self.bounds];
-        _toolbar.userInteractionEnabled = NO;
-        _toolbar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
-        [_toolbar setBackgroundImage:nil forToolbarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault]; // remove background set through the appearence proxy
-#endif
-        [self addSubview:_toolbar];
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self setupBlurEffect];
     }
-
-    return _toolbar;
+    return self;
 }
+
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    if (self) {
+        [self setupBlurEffect];
+    }
+    return self;
+}
+
+- (void)setupBlurEffect
+  {
+      UIBlurEffect *blurEffect;
+      if (@available(iOS 13.0, *)) {
+          blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+      } else {
+          // UIBlurEffectStyleLight/Dark available since iOS 8
+          blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
+      }
+
+      _blurEffectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+      _blurEffectView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+      _blurEffectView.frame = self.bounds;
+      [self addSubview:_blurEffectView];
+
+      _tintOverlay = [[UIView alloc] initWithFrame:self.bounds];
+      _tintOverlay.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+      _tintOverlay.alpha = 0.85;
+      [self addSubview:_tintOverlay];
+  }
 
 - (void)setBlurTintColor:(UIColor *)blurTintColor
 {
-    if ([self.toolbar respondsToSelector:@selector(setBarTintColor:)]) {
-        [self.toolbar performSelector:@selector(setBarTintColor:) withObject:blurTintColor];
-    }
+    self.tintOverlay.backgroundColor = blurTintColor;
 }
 
 - (UIColor *)blurTintColor
 {
-    if ([self.toolbar respondsToSelector:@selector(barTintColor)]) {
-        return [self.toolbar performSelector:@selector(barTintColor)];
-    }
-    return nil;
+    return self.tintOverlay.backgroundColor;
 }
 
 @end
+
