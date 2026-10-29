@@ -503,8 +503,13 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
     {
         // Correct the border position
         if (@available(iOS 26.0, *)) {
-            // Add height to compensate moving the toast a few pts up to hide the gap
-            currentHeight += 4.0;
+            // Add height to compensate moving the toast up to hide the visual gap in
+            // windowed (Stage Manager) mode. Only apply while still off-screen (negative
+            // origin.y) to avoid cumulative drift after the toast settles (MPLAT-2607).
+            CGFloat windowedGap = [self ios26WindowedGap];
+            if (windowedGap > 0 && self.frame.origin.y < 0) {
+                currentHeight += windowedGap;
+            }
         }
         CGRect borderFrame = self.borderView.frame;
         borderFrame.origin.y = currentHeight;
@@ -514,8 +519,15 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
     currentHeight += self.borderView.frame.size.height;
 
     if (@available(iOS 26.0, *)) {
-        // Move toast a few pts up to hide the gap when app is not in full screen mode
-        self.frame = CGRectMake(0.0, self.frame.origin.y - 4.0, self.frame.size.width, currentHeight);
+        // Move toast up to hide the visual gap in windowed (Stage Manager) mode.
+        // Guard on negative origin.y so repeated layoutSubviews calls after the animation
+        // completes do not keep shifting the toast upward (MPLAT-2607).
+        CGFloat windowedGap = [self ios26WindowedGap];
+        if (windowedGap > 0 && self.frame.origin.y < 0) {
+            self.frame = CGRectMake(0.0, self.frame.origin.y - windowedGap, self.frame.size.width, currentHeight);
+        } else {
+            self.frame = CGRectMake(0.0, self.frame.origin.y, self.frame.size.width, currentHeight);
+        }
     } else {
         self.frame = CGRectMake(0.0, self.frame.origin.y, self.frame.size.width, currentHeight);
     }
@@ -570,6 +582,15 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
 {
     [super layoutSubviews];
     [self updateHeightOfMessageView];
+}
+
+/// Returns the visual gap (pts) between the nav bar and the toast on iOS 26.
+/// The system sets window.layer.cornerRadius to the actual rounded-corner size in
+/// Stage Manager (windowed) mode and 0 in full-screen — no extra detection needed.
+- (CGFloat)ios26WindowedGap API_AVAILABLE(ios(26.0))
+{
+    UIWindow *window = self.viewController.view.window;
+    return window ? window.layer.cornerRadius : 0.0;
 }
 
 - (void)fadeMeOut
