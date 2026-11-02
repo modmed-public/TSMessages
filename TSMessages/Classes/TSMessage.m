@@ -191,13 +191,20 @@ __weak static UIViewController *_defaultViewController;
     __block CGFloat verticalOffset = 0.0f;
     
     void (^addStatusBarHeightToVerticalOffset)(void) = ^void() {
-        
+
         if (currentView.messagePosition == TSMessageNotificationPositionNavBarOverlay){
             return;
         }
-        
-        CGSize statusBarSize = [UIApplication sharedApplication].statusBarFrame.size;
-        verticalOffset += MIN(statusBarSize.width, statusBarSize.height);
+
+        // UIApplication.statusBarFrame is deprecated on iOS 26 and returns CGRectZero on some
+        // devices (e.g. iPad 9th gen), causing the toast to be positioned too high and
+        // truncated under the nav bar. Use safeAreaInsets.top instead (MPLAT-2607).
+        if (@available(iOS 26.0, *)) {
+            verticalOffset += currentView.viewController.view.window.safeAreaInsets.top;
+        } else {
+            CGSize statusBarSize = [UIApplication sharedApplication].statusBarFrame.size;
+            verticalOffset += MIN(statusBarSize.width, statusBarSize.height);
+        }
     };
     
     if ([currentView.viewController isKindOfClass:[UINavigationController class]] || [currentView.viewController.parentViewController isKindOfClass:[UINavigationController class]])
@@ -254,30 +261,6 @@ __weak static UIViewController *_defaultViewController;
         
         toPoint = CGPointMake(currentView.center.x,
                               navigationbarBottomOfViewController + verticalOffset + CGRectGetHeight(currentView.frame) / 2.0);
-
-        // On iOS 26, UIApplication.statusBarFrame is deprecated. On some devices it returns
-        // CGRectZero (verticalOffset misses the status bar area); on others it still returns a
-        // value (causing navBar.frame.origin.y to double-count the same area). Avoid both by
-        // measuring the nav bar bottom directly via coordinate conversion and overriding toPoint.
-        // The gap nudge hides the Liquid Glass nav bar's visual seam.
-        // Applied once here on the animation target — not in layoutSubviews — to avoid cumulative drift (MPLAT-2607).
-        if (@available(iOS 26.0, *)) {
-            UINavigationController *navController = nil;
-            if ([currentView.viewController isKindOfClass:[UINavigationController class]]) {
-                navController = (UINavigationController *)currentView.viewController;
-            } else if ([currentView.viewController.parentViewController isKindOfClass:[UINavigationController class]]) {
-                navController = (UINavigationController *)currentView.viewController.parentViewController;
-            }
-            UIWindow *window = currentView.viewController.view.window;
-            if (navController && window && ![TSMessage isNavigationBarInNavigationControllerHidden:navController]) {
-                CGPoint navBarBottomPt = [navController.navigationBar
-                                          convertPoint:CGPointMake(0, navController.navigationBar.bounds.size.height)
-                                                toView:currentView.superview];
-                CGFloat gap = MAX(4.0, window.layer.cornerRadius);
-                toPoint = CGPointMake(currentView.center.x,
-                                      navigationbarBottomOfViewController + navBarBottomPt.y - gap + CGRectGetHeight(currentView.frame) / 2.0);
-            }
-        }
     }
     else
     {
