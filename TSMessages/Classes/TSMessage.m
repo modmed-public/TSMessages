@@ -291,7 +291,10 @@ __weak static UIViewController *_defaultViewController;
         }
     };
     void(^completionBlock)(BOOL) = ^(BOOL finished) {
-        currentView.messageIsFullyDisplayed = YES;
+        // A fade out started during the fade in has already cleared this; don't set it again.
+        if (!currentView.isFadingOut) {
+            currentView.messageIsFullyDisplayed = YES;
+        }
     };
     
     if (![TSMessage iOS7StyleEnabled]) {
