@@ -51,6 +51,7 @@ static NSMutableDictionary *_notificationDesign;
 
 @property (copy) void (^callback)(void);
 @property (copy) void (^buttonCallback)(void);
+@property (copy) void (^dismissCompletion)(void);
 
 - (CGFloat)updateHeightOfMessageView;
 - (void)layoutSubviews;
@@ -198,6 +199,33 @@ static NSMutableDictionary *_notificationDesign;
          atPosition:(TSMessageNotificationPosition)position
 canBeDismissedByUser:(BOOL)dismissingEnabled
 {
+    return [self initWithTitle:title
+                      subtitle:subtitle
+                         image:image
+                          type:aNotificationType
+                      duration:duration
+              inViewController:viewController
+                      callback:callback
+                   buttonTitle:buttonTitle
+                buttonCallback:buttonCallback
+                    atPosition:position
+          canBeDismissedByUser:dismissingEnabled
+             dismissCompletion:nil];
+}
+
+- (id)initWithTitle:(NSString *)title
+           subtitle:(NSString *)subtitle
+              image:(UIImage *)image
+               type:(TSMessageNotificationType)aNotificationType
+           duration:(CGFloat)duration
+   inViewController:(UIViewController *)viewController
+           callback:(void (^)(void))callback
+        buttonTitle:(NSString *)buttonTitle
+     buttonCallback:(void (^)(void))buttonCallback
+         atPosition:(TSMessageNotificationPosition)position
+canBeDismissedByUser:(BOOL)dismissingEnabled
+  dismissCompletion:(void (^)(void))dismissCompletion
+{
     NSDictionary *notificationDesign = [TSMessageView notificationDesign];
 
     if ((self = [self init]))
@@ -210,6 +238,7 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
         _messagePosition = position;
         self.callback = callback;
         self.buttonCallback = buttonCallback;
+        self.dismissCompletion = dismissCompletion;
 
         CGFloat screenWidth = self.viewController.view.bounds.size.width;
         CGFloat padding = [self padding];
@@ -573,6 +602,16 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
     if (self.callback != nil)
     {
         self.callback();
+    }
+}
+
+- (void)finishDismissal
+{
+    void (^completion)(void) = self.dismissCompletion;
+    self.dismissCompletion = nil;
+    if (completion != nil)
+    {
+        completion();
     }
 }
 

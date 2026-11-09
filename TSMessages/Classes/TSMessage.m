@@ -131,6 +131,33 @@ __weak static UIViewController *_defaultViewController;
                               atPosition:(TSMessageNotificationPosition)messagePosition
                     canBeDismissedByUser:(BOOL)dismissingEnabled
 {
+    [self showNotificationInViewController:viewController
+                                     title:title
+                                  subtitle:subtitle
+                                     image:image
+                                      type:type
+                                  duration:duration
+                                  callback:callback
+                               buttonTitle:buttonTitle
+                            buttonCallback:buttonCallback
+                                atPosition:messagePosition
+                      canBeDismissedByUser:dismissingEnabled
+                         dismissCompletion:nil];
+}
+
++ (void)showNotificationInViewController:(UIViewController *)viewController
+                                   title:(NSString *)title
+                                subtitle:(NSString *)subtitle
+                                   image:(UIImage *)image
+                                    type:(TSMessageNotificationType)type
+                                duration:(NSTimeInterval)duration
+                                callback:(void (^)(void))callback
+                             buttonTitle:(NSString *)buttonTitle
+                          buttonCallback:(void (^)(void))buttonCallback
+                              atPosition:(TSMessageNotificationPosition)messagePosition
+                    canBeDismissedByUser:(BOOL)dismissingEnabled
+                       dismissCompletion:(void (^)(void))dismissCompletion
+{
     // Create the TSMessageView
     TSMessageView *v = [[TSMessageView alloc] initWithTitle:title
                                                    subtitle:subtitle
@@ -142,7 +169,8 @@ __weak static UIViewController *_defaultViewController;
                                                 buttonTitle:buttonTitle
                                              buttonCallback:buttonCallback
                                                  atPosition:messagePosition
-                                       canBeDismissedByUser:dismissingEnabled];
+                                       canBeDismissedByUser:dismissingEnabled
+                                          dismissCompletion:dismissCompletion];
     [self prepareNotificationToBeShown:v];
 }
 
@@ -156,7 +184,12 @@ __weak static UIViewController *_defaultViewController;
     {
         if (([n.title isEqualToString:title] || (!n.title && !title)) && ([n.subtitle isEqualToString:subtitle] || (!n.subtitle && !subtitle)))
         {
-            return; // avoid showing the same messages twice in a row
+            // Avoid showing the same messages twice in a row. Finish the dropped message (asynchronously, so
+            // callers never get the completion before this call returns) so its owner can clean up.
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [messageView finishDismissal];
+            });
+            return;
         }
     }
     
@@ -368,21 +401,20 @@ __weak static UIViewController *_defaultViewController;
         [currentView viewWillBeDismissed];
          [currentView removeFromSuperview];
          
-         if ([self.messages count] > 0)
-         {
-             [self.messages removeObjectAtIndex:0];
-         }
-         
+         [self.messages removeObject:currentView];
+
          notificationActive = NO;
-         
+
          if ([self.messages count] > 0)
          {
              [self fadeInCurrentNotification];
          }
-         
+
          if(animationFinished) {
              animationFinished();
          }
+
+         [currentView finishDismissal];
      }];
 }
 
