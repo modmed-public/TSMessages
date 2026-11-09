@@ -130,7 +130,7 @@ The following properties can be set when creating a new notification:
 * **image**: A custom icon image that is used instead of the default one (optional)
 * **type**: The notification type (Message, Warning, Error, Success)
 * **duration**: The duration the notification should be displayed
-* **callback**: The block that should be executed, when the user dismissed the message by tapping on it or swiping it to the top.
+* **callback**: Called exactly once, on the main thread, when the message is finished: after it has faded out (dismissed by the user tapping it or swiping it to the top, or after its duration), or when it is dropped without being shown because an identical message is already queued.
 
 Except the title and the notification type, all of the listed values are optional
 
