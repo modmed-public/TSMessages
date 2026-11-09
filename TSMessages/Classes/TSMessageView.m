@@ -21,7 +21,7 @@ static NSMutableDictionary *_notificationDesign;
 - (void)fadeOutNotification:(TSMessageView *)currentView; // private method of TSMessage, but called by TSMessageView in -[fadeMeOut]
 @end
 
-@interface TSMessageView () <UIGestureRecognizerDelegate>
+@interface TSMessageView ()
 
 /** The displayed title of this message */
 @property (nonatomic, strong) NSString *title;
@@ -439,12 +439,6 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
                                                                                      action:@selector(fadeMeOut)];
             [self addGestureRecognizer:tapRec];
         }
-
-        if (self.callback) {
-            UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
-            tapGesture.delegate = self;
-            [self addGestureRecognizer:tapGesture];
-        }
     }
     return self;
 }
@@ -570,9 +564,11 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
 }
 
 - (void)viewWillBeDismissed {
-    if (self.callback != nil)
+    void (^callback)(void) = self.callback;
+    self.callback = nil;
+    if (callback != nil)
     {
-        self.callback();
+        callback();
     }
 }
 
@@ -595,24 +591,6 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
     }
 
     [self fadeMeOut];
-}
-
-- (void)handleTap:(UITapGestureRecognizer *)tapGesture
-{
-    if (tapGesture.state == UIGestureRecognizerStateRecognized)
-    {
-        if (self.callback)
-        {
-            self.callback();
-        }
-    }
-}
-
-#pragma mark - UIGestureRecognizerDelegate
-
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
-{
-    return ! ([touch.view isKindOfClass:[UIControl class]]);
 }
 
 #pragma mark - Grab Image From Pod Bundle

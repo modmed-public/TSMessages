@@ -53,7 +53,8 @@
  @param notificationType The type (color) of the notification view
  @param duration The duration this notification should be displayed (optional)
  @param viewController The view controller this message should be displayed in
- @param callback The block that should be executed, when the user tapped on the message
+ @param callback Called exactly once, on the main thread, when the message is finished: after it has faded out, or
+ when it is dropped without being shown (a duplicate of a queued message). It is not called on tap.
  @param buttonTitle The title for button (optional)
  @param buttonCallback The block that should be executed, when the user tapped on the button
  @param position The position of the message on the screen
@@ -71,8 +72,13 @@
          atPosition:(TSMessageNotificationPosition)position
 canBeDismissedByUser:(BOOL)dismissingEnabled;
 
+/** YES once a fade out has started, so it is not started twice (swipe + tap, or timer + user) */
+@property (nonatomic, assign) BOOL isFadingOut;
+
 /** Fades out this notification view */
 - (void)fadeMeOut;
+
+/** Calls the callback, at most once. Called when the message is finished, whether it was shown or dropped. */
 - (void)viewWillBeDismissed;
 
 /** Use this method to load a custom design file */

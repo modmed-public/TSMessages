@@ -156,7 +156,12 @@ __weak static UIViewController *_defaultViewController;
     {
         if (([n.title isEqualToString:title] || (!n.title && !title)) && ([n.subtitle isEqualToString:subtitle] || (!n.subtitle && !subtitle)))
         {
-            return; // avoid showing the same messages twice in a row
+            // Avoid showing the same messages twice in a row. Finish the dropped message (asynchronously, so its
+            // callback never runs before this call returns) so its owner can clean up.
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [messageView viewWillBeDismissed];
+            });
+            return;
         }
     }
     
@@ -341,6 +346,10 @@ __weak static UIViewController *_defaultViewController;
 
 - (void)fadeOutNotification:(TSMessageView *)currentView animationFinishedBlock:(void (^)(void))animationFinished
 {
+    // A second fade out (swipe + tap, timer + user) would run the completion twice and remove the wrong message.
+    if (currentView.isFadingOut) return;
+    currentView.isFadingOut = YES;
+
     currentView.messageIsFullyDisplayed = NO;
     [NSObject cancelPreviousPerformRequestsWithTarget:self
                                              selector:@selector(fadeOutNotification:)
@@ -365,24 +374,21 @@ __weak static UIViewController *_defaultViewController;
          }
      } completion:^(BOOL finished)
      {
-        [currentView viewWillBeDismissed];
          [currentView removeFromSuperview];
-         
-         if ([self.messages count] > 0)
-         {
-             [self.messages removeObjectAtIndex:0];
-         }
-         
+         [self.messages removeObject:currentView];
+
          notificationActive = NO;
-         
+
          if ([self.messages count] > 0)
          {
              [self fadeInCurrentNotification];
          }
-         
+
          if(animationFinished) {
              animationFinished();
          }
+
+         [currentView viewWillBeDismissed];
      }];
 }
 

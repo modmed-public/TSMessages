@@ -139,7 +139,8 @@ typedef NS_ENUM(NSInteger,TSMessageNotificationDuration) {
  @param image A custom icon image (optional)
  @param type The notification type (Message, Warning, Error, Success)
  @param duration The duration of the notification being displayed
- @param callback The block that should be executed, when the user tapped on the message
+ @param callback Called exactly once, on the main thread, when the message is finished: after it has faded out, or
+ when it is dropped without being shown (a duplicate of a queued message). It is not called on tap.
  @param buttonTitle The title for button (optional)
  @param buttonCallback The block that should be executed, when the user tapped on the button
  @param messagePosition The position of the message on the screen
