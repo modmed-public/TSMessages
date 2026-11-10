@@ -51,6 +51,7 @@ static NSMutableDictionary *_notificationDesign;
 
 @property (copy) void (^callback)(void);
 @property (copy) void (^buttonCallback)(void);
+@property (copy) void (^dismissCompletion)(void);
 
 - (CGFloat)updateHeightOfMessageView;
 - (void)layoutSubviews;
@@ -574,6 +575,13 @@ canBeDismissedByUser:(BOOL)dismissingEnabled
     {
         self.callback();
     }
+}
+
+- (void (^)(void))takeDismissCompletion
+{
+    void (^completion)(void) = self.dismissCompletion;
+    self.dismissCompletion = nil;
+    return completion;
 }
 
 - (void)didMoveToWindow

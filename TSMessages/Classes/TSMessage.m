@@ -22,6 +22,13 @@
 
 @end
 
+// Implemented in TSMessageView.m
+@interface TSMessageView (TSMessagePrivate)
+@property (copy) void (^dismissCompletion)(void);
+/** Returns the dismissCompletion and clears it, so it can run only once. */
+- (void (^)(void))takeDismissCompletion;
+@end
+
 @implementation TSMessage
 static TSMessage *sharedMessage;
 static BOOL notificationActive;
@@ -131,6 +138,33 @@ __weak static UIViewController *_defaultViewController;
                               atPosition:(TSMessageNotificationPosition)messagePosition
                     canBeDismissedByUser:(BOOL)dismissingEnabled
 {
+    [self showNotificationInViewController:viewController
+                                     title:title
+                                  subtitle:subtitle
+                                     image:image
+                                      type:type
+                                  duration:duration
+                                  callback:callback
+                               buttonTitle:buttonTitle
+                            buttonCallback:buttonCallback
+                                atPosition:messagePosition
+                      canBeDismissedByUser:dismissingEnabled
+                         dismissCompletion:nil];
+}
+
++ (void)showNotificationInViewController:(UIViewController *)viewController
+                                   title:(NSString *)title
+                                subtitle:(NSString *)subtitle
+                                   image:(UIImage *)image
+                                    type:(TSMessageNotificationType)type
+                                duration:(NSTimeInterval)duration
+                                callback:(void (^)(void))callback
+                             buttonTitle:(NSString *)buttonTitle
+                          buttonCallback:(void (^)(void))buttonCallback
+                              atPosition:(TSMessageNotificationPosition)messagePosition
+                    canBeDismissedByUser:(BOOL)dismissingEnabled
+                       dismissCompletion:(void (^)(void))dismissCompletion
+{
     // Create the TSMessageView
     TSMessageView *v = [[TSMessageView alloc] initWithTitle:title
                                                    subtitle:subtitle
@@ -143,6 +177,7 @@ __weak static UIViewController *_defaultViewController;
                                              buttonCallback:buttonCallback
                                                  atPosition:messagePosition
                                        canBeDismissedByUser:dismissingEnabled];
+    v.dismissCompletion = dismissCompletion;
     [self prepareNotificationToBeShown:v];
 }
 
@@ -154,9 +189,21 @@ __weak static UIViewController *_defaultViewController;
     
     for (TSMessageView *n in [TSMessage sharedMessage].messages)
     {
+        if (n == messageView)
+        {
+            return; // already queued
+        }
+
         if (([n.title isEqualToString:title] || (!n.title && !title)) && ([n.subtitle isEqualToString:subtitle] || (!n.subtitle && !subtitle)))
         {
-            return; // avoid showing the same messages twice in a row
+            // Avoid showing the same messages twice in a row. Finish the dropped message on the next main-queue
+            // turn, so its dismissCompletion does not run re-entrantly inside the caller's show call.
+            void (^dismissCompletion)(void) = [messageView takeDismissCompletion];
+            if (dismissCompletion != nil)
+            {
+                dispatch_async(dispatch_get_main_queue(), dismissCompletion);
+            }
+            return;
         }
     }
     
@@ -365,17 +412,29 @@ __weak static UIViewController *_defaultViewController;
          }
      } completion:^(BOOL finished)
      {
+         if ([self.messages indexOfObjectIdenticalTo:currentView] == NSNotFound)
+         {
+             // An earlier fade out of this view already removed it from the queue.
+             if(animationFinished) {
+                 animationFinished();
+             }
+             return;
+         }
+         
         [currentView viewWillBeDismissed];
          [currentView removeFromSuperview];
          
-         if ([self.messages count] > 0)
-         {
-             [self.messages removeObjectAtIndex:0];
-         }
+         [self.messages removeObjectIdenticalTo:currentView];
          
          notificationActive = NO;
          
-         if ([self.messages count] > 0)
+         void (^dismissCompletion)(void) = [currentView takeDismissCompletion];
+         if (dismissCompletion != nil)
+         {
+             dismissCompletion();
+         }
+         
+         if (!notificationActive && [self.messages count] > 0)
          {
              [self fadeInCurrentNotification];
          }
