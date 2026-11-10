@@ -71,29 +71,9 @@
          atPosition:(TSMessageNotificationPosition)position
 canBeDismissedByUser:(BOOL)dismissingEnabled;
 
-/** Same as above, plus a completion that is called exactly once when the message is finished: after it has faded out,
- or when it is dropped without being shown (a duplicate of a queued message). Unlike callback, it is not tied to a tap.
- @param dismissCompletion Called on the main thread.
- */
-- (id)initWithTitle:(NSString *)title
-           subtitle:(NSString *)subtitle
-              image:(UIImage *)image
-               type:(TSMessageNotificationType)notificationType
-           duration:(CGFloat)duration
-   inViewController:(UIViewController *)viewController
-           callback:(void (^)(void))callback
-        buttonTitle:(NSString *)buttonTitle
-     buttonCallback:(void (^)(void))buttonCallback
-         atPosition:(TSMessageNotificationPosition)position
-canBeDismissedByUser:(BOOL)dismissingEnabled
-  dismissCompletion:(void (^)(void))dismissCompletion;
-
 /** Fades out this notification view */
 - (void)fadeMeOut;
 - (void)viewWillBeDismissed;
-
-/** Calls dismissCompletion if it has not been called yet. Safe to call more than once. */
-- (void)finishDismissal;
 
 /** Use this method to load a custom design file */
 + (void)addNotificationDesignFromFile:(NSString *)file;

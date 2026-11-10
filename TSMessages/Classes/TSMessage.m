@@ -22,6 +22,13 @@
 
 @end
 
+// Implemented in TSMessageView.m
+@interface TSMessageView (TSMessagePrivate)
+@property (copy) void (^dismissCompletion)(void);
+/** Returns the dismissCompletion and clears it, so it can run only once. */
+- (void (^)(void))takeDismissCompletion;
+@end
+
 @implementation TSMessage
 static TSMessage *sharedMessage;
 static BOOL notificationActive;
@@ -169,8 +176,8 @@ __weak static UIViewController *_defaultViewController;
                                                 buttonTitle:buttonTitle
                                              buttonCallback:buttonCallback
                                                  atPosition:messagePosition
-                                       canBeDismissedByUser:dismissingEnabled
-                                          dismissCompletion:dismissCompletion];
+                                       canBeDismissedByUser:dismissingEnabled];
+    v.dismissCompletion = dismissCompletion;
     [self prepareNotificationToBeShown:v];
 }
 
@@ -182,13 +189,20 @@ __weak static UIViewController *_defaultViewController;
     
     for (TSMessageView *n in [TSMessage sharedMessage].messages)
     {
+        if (n == messageView)
+        {
+            return; // already queued
+        }
+
         if (([n.title isEqualToString:title] || (!n.title && !title)) && ([n.subtitle isEqualToString:subtitle] || (!n.subtitle && !subtitle)))
         {
-            // Avoid showing the same messages twice in a row. Finish the dropped message (asynchronously, so
-            // callers never get the completion before this call returns) so its owner can clean up.
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [messageView finishDismissal];
-            });
+            // Avoid showing the same messages twice in a row. Finish the dropped message on the next main-queue
+            // turn, so its dismissCompletion does not run re-entrantly inside the caller's show call.
+            void (^dismissCompletion)(void) = [messageView takeDismissCompletion];
+            if (dismissCompletion != nil)
+            {
+                dispatch_async(dispatch_get_main_queue(), dismissCompletion);
+            }
             return;
         }
     }
@@ -398,23 +412,36 @@ __weak static UIViewController *_defaultViewController;
          }
      } completion:^(BOOL finished)
      {
+         if ([self.messages indexOfObjectIdenticalTo:currentView] == NSNotFound)
+         {
+             // An earlier fade out of this view already removed it from the queue.
+             if(animationFinished) {
+                 animationFinished();
+             }
+             return;
+         }
+         
         [currentView viewWillBeDismissed];
          [currentView removeFromSuperview];
          
-         [self.messages removeObject:currentView];
-
+         [self.messages removeObjectIdenticalTo:currentView];
+         
          notificationActive = NO;
-
-         if ([self.messages count] > 0)
+         
+         void (^dismissCompletion)(void) = [currentView takeDismissCompletion];
+         if (dismissCompletion != nil)
+         {
+             dismissCompletion();
+         }
+         
+         if (!notificationActive && [self.messages count] > 0)
          {
              [self fadeInCurrentNotification];
          }
-
+         
          if(animationFinished) {
              animationFinished();
          }
-
-         [currentView finishDismissal];
      }];
 }
 

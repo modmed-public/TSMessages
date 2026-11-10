@@ -157,10 +157,12 @@ typedef NS_ENUM(NSInteger,TSMessageNotificationDuration) {
                               atPosition:(TSMessageNotificationPosition)messagePosition
                     canBeDismissedByUser:(BOOL)dismissingEnabled;
 
-/** Shows a notification message in a specific view controller, and reports when it is finished
- @param dismissCompletion Called exactly once on the main thread when the message has faded out, or when it is
- dropped without being shown (a duplicate of a queued message). Not called on tap; use callback for that.
- Other parameters are as above.
+/** Shows a notification message in a specific view controller, and reports when it is gone
+ @param dismissCompletion Called at most once, on the main thread, when the message is gone: after it has been shown
+ and has faded out (it timed out, or it was dismissed by the user or by dismissActiveNotification), or, if it is dropped
+ because a message with the same title and subtitle is already queued, on the next main-queue turn. A queued message
+ only completes after it has been shown, so it waits behind earlier messages, and an endless message that is never
+ dismissed never completes. Other parameters are as above.
  */
 + (void)showNotificationInViewController:(UIViewController *)viewController
                                    title:(NSString *)title
